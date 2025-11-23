@@ -82,10 +82,24 @@ export async function initializeFsrsStateForCard(cardId: string, createdAt?: Dat
   return prisma.card.update({ where: { id: cardId }, data: fsrsCardToDbUpdate(fsrsCard) });
 }
 
+function ratingToKey(rating: Rating): 'again' | 'hard' | 'good' | 'easy' {
+  switch (rating) {
+    case Rating.Again:
+      return 'again';
+    case Rating.Hard:
+      return 'hard';
+    case Rating.Good:
+      return 'good';
+    case Rating.Easy:
+    default:
+      return 'easy';
+  }
+}
+
 export async function applyReview(card: Card, rating: Rating, now = new Date()) {
   const fsrsCard = dbCardToFsrsCard(card);
   const schedulingCards = scheduler.repeat(fsrsCard, now);
-  const outcome = schedulingCards[rating];
+  const outcome = schedulingCards[ratingToKey(rating)];
 
   const updatedCard = await prisma.card.update({
     where: { id: card.id },
