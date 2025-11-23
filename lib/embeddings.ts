@@ -31,16 +31,13 @@ export async function embedText(text: string): Promise<number[]> {
 export async function updateCardEmbedding(cardId: string, userId: string, text: string) {
   try {
     const embedding = await embedText(text);
-    await prisma.$transaction(async (tx) => {
-      await tx.cardEmbedding
-        .delete({
-          where: { cardId }
-        })
-        .catch(() => null);
-      await tx.cardEmbedding.create({
-        data: { cardId, userId, embedding: embedding as unknown as any }
-      });
-    });
+    const vectorLiteral = `[${embedding.join(',')}]`;
+    await prisma.$executeRaw`
+      INSERT INTO "CardEmbedding" ("cardId", "userId", "embedding", "createdAt", "updatedAt")
+      VALUES (${cardId}, ${userId}, ${vectorLiteral}::vector, NOW(), NOW())
+      ON CONFLICT ("cardId")
+      DO UPDATE SET "embedding" = EXCLUDED."embedding", "userId" = EXCLUDED."userId", "updatedAt" = NOW();
+    `;
   } catch (err) {
     console.error('Failed to update embedding', err);
   }
