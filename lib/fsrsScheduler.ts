@@ -98,7 +98,7 @@ function ratingToKey(rating: Rating): 'again' | 'hard' | 'good' | 'easy' {
 
 export async function applyReview(card: Card, rating: Rating, now = new Date()) {
   const fsrsCard = dbCardToFsrsCard(card);
-  const schedulingCards = scheduler.repeat(fsrsCard, now);
+  const schedulingCards = scheduler.repeat(fsrsCard, now) as FSRSReturn;
   const outcome = schedulingCards[ratingToKey(rating)];
 
   const updatedCard = await prisma.card.update({
