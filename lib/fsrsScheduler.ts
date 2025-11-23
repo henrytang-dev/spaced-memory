@@ -1,4 +1,4 @@
-import { Card, ReviewLog } from '@prisma/client';
+import { Card, ReviewLog, Prisma } from '@prisma/client';
 import {
   fsrs,
   generatorParameters,
@@ -72,7 +72,7 @@ export const fsrsLogToReviewLog = (
         ? String(logState)
         : (logState as string),
     reviewedAt: anyLog.review ?? new Date(),
-    logJson: log as unknown as Record<string, unknown>
+    logJson: log as unknown as Prisma.JsonValue
   } satisfies Omit<ReviewLog, 'id'>;
 };
 
