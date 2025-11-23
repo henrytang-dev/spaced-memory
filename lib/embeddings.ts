@@ -31,10 +31,15 @@ export async function embedText(text: string): Promise<number[]> {
 export async function updateCardEmbedding(cardId: string, userId: string, text: string) {
   try {
     const embedding = await embedText(text);
-    await prisma.cardEmbedding.upsert({
-      where: { cardId },
-      create: { cardId, userId, embedding: embedding as unknown as any },
-      update: { embedding: embedding as unknown as any, userId }
+    await prisma.$transaction(async (tx) => {
+      await tx.cardEmbedding
+        .delete({
+          where: { cardId }
+        })
+        .catch(() => null);
+      await tx.cardEmbedding.create({
+        data: { cardId, userId, embedding: embedding as unknown as any }
+      });
     });
   } catch (err) {
     console.error('Failed to update embedding', err);
