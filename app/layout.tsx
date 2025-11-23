@@ -13,11 +13,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-midnight-900 text-gray-100">
-        <div className="fixed inset-0 -z-10 bg-grid-glow opacity-70" />
-        <div className="fixed inset-0 -z-[5] bg-[radial-gradient(circle_at_top,rgba(84,140,255,0.35),transparent_55%)] blur-3xl" />
-        <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 pb-10 pt-6 md:px-8">
-          <Navbar authenticated={authenticated} />
-          <main className="mt-8 flex-1">{children}</main>
+        <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
+          <div className="shell relative flex min-h-[90vh] flex-col px-4 pb-10 pt-6 md:px-10">
+            <div className="pointer-events-none absolute inset-x-10 top-6 h-24 rounded-full bg-gradient-to-r from-white/10 to-transparent blur-3xl" />
+            <Navbar authenticated={authenticated} />
+            <main className="relative mt-10 flex-1">{children}</main>
+          </div>
         </div>
       </body>
     </html>

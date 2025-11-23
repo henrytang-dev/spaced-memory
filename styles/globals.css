@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,13 +6,39 @@
 
 @layer base {
   :root {
-    font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Space Grotesk", "Syne", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color-scheme: dark;
+    --chrome-border: rgba(255, 255, 255, 0.08);
+    --chrome-glow: rgba(144, 238, 255, 0.65);
   }
 
   body {
-    @apply min-h-screen bg-midnight-900 text-gray-100;
-    background-image: linear-gradient(135deg, rgba(5, 7, 15, 0.95), rgba(10, 15, 31, 0.98)), var(--grid-bg, transparent);
+    @apply relative min-h-screen overflow-x-hidden bg-midnight-900 text-gray-100;
+    background: radial-gradient(circle at 18% 20%, rgba(70, 139, 255, 0.18), transparent 45%),
+      radial-gradient(circle at 82% 15%, rgba(139, 92, 246, 0.17), transparent 35%),
+      radial-gradient(circle at 60% 90%, rgba(16, 185, 129, 0.12), transparent 35%), #01030a;
+  }
+
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  body::before {
+    background: linear-gradient(130deg, rgba(135, 255, 238, 0.35), rgba(95, 99, 255, 0.25));
+    filter: blur(300px);
+    opacity: 0.7;
+    animation: aurora 18s ease-in-out infinite;
+  }
+
+  body::after {
+    background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+    background-size: 60px 60px;
+    mix-blend-mode: screen;
+    opacity: 0.25;
   }
 
   * {
@@ -30,7 +56,8 @@
 
 @layer components {
   .glass-card {
-    @apply rounded-2xl border border-white/5 bg-white/5 p-6 shadow-glow backdrop-blur;
+    @apply rounded-[26px] border border-white/10 bg-white/5 p-6 shadow-[0_30px_120px_rgba(2,4,10,0.85)] backdrop-blur-[45px];
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .gradient-border {
@@ -38,18 +65,68 @@
   }
 
   .btn-primary {
-    @apply rounded-full bg-gradient-to-r from-accent to-cyan-400 px-5 py-2 text-sm font-semibold text-midnight-900 transition hover:shadow-glow;
+    @apply rounded-full bg-gradient-to-r from-accent via-cyan-200 to-purple-300 px-7 py-2 text-sm font-semibold text-midnight-900 transition hover:shadow-[0_15px_35px_rgba(120,243,255,0.45)];
+    box-shadow: 0 10px 40px rgba(120, 243, 255, 0.35);
   }
 
   .btn-secondary {
-    @apply rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white transition hover:border-accent;
+    @apply rounded-full border border-white/20 px-6 py-2 text-sm font-semibold text-white transition hover:border-accent/70;
   }
 
   .input-field {
-    @apply w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-white placeholder:text-white/40 focus:border-accent focus:outline-none;
+    @apply w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-white/40 focus:border-accent focus:outline-none;
   }
 
   .textarea-field {
     @apply input-field min-h-[120px] resize-y;
+  }
+
+  .stat-card {
+    @apply glass-card relative overflow-hidden;
+  }
+
+  .stat-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(120, 243, 255, 0.35), transparent 55%);
+    opacity: 0.5;
+  }
+
+  .pill {
+    @apply inline-flex items-center rounded-full border border-white/25 bg-white/5 px-4 py-1 text-[11px] uppercase tracking-[0.4em] text-white/80;
+  }
+
+  .shell {
+    @apply relative rounded-[36px] border border-white/10 bg-white/5 shadow-[0_25px_90px_rgba(3,4,9,0.9)] backdrop-blur-[55px];
+  }
+
+  .spotlight {
+    @apply overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-white/10 to-white/0 p-6;
+  }
+  .chrome-card {
+    @apply rounded-[24px] border border-white/10 bg-white/5 p-6 backdrop-blur-3xl;
+    box-shadow: 0 20px 80px rgba(1, 3, 10, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .sidebar-panel {
+    @apply rounded-[28px] border border-white/5 bg-white/5 p-6 backdrop-blur-3xl;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .divider-line {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent;
+  }
+}
+
+@keyframes aurora {
+  0% {
+    transform: translate3d(-10%, -10%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(10%, 10%, 0) scale(1.1);
+  }
+  100% {
+    transform: translate3d(-10%, -5%, 0) scale(1);
   }
 }

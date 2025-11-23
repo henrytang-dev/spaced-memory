@@ -46,15 +46,27 @@ export default function CardsClient({ initialCards }: { initialCards: CardDTO[] 
 
   return (
     <div className="space-y-6">
-      <div className="glass-card flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-accent">Memory vault</p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">All cards</h1>
-          <p className="text-sm text-white/60">Search semantically or filter manually. Everything stays synced.</p>
+      <div className="glass-card flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-2">
+          <span className="pill">Neural archive</span>
+          <h1 className="text-3xl font-semibold text-white md:text-4xl">
+            Curate your{' '}
+            <span className="text-transparent bg-gradient-to-r from-accent via-cyan-200 to-white bg-clip-text">
+              knowledge grid
+            </span>
+          </h1>
+          <p className="text-sm text-white/60">
+            Mathpix captures, Markdown edits, and embeddings are kept in sync across this gallery.
+          </p>
         </div>
-        <Link href="/cards/new" className="btn-primary self-start">
-          New card
-        </Link>
+        <div className="flex gap-3">
+          <Link href="/cards/new" className="btn-primary">
+            New card
+          </Link>
+          <a href="/study" className="btn-secondary">
+            Study
+          </a>
+        </div>
       </div>
 
       <div className="glass-card flex flex-col gap-3 md:flex-row">
@@ -75,8 +87,11 @@ export default function CardsClient({ initialCards }: { initialCards: CardDTO[] 
           <Link
             key={card.id}
             href={`/cards/${card.id}`}
-            className="glass-card block transition hover:-translate-y-1 hover:border-accent"
+            className="glass-card relative block overflow-hidden transition hover:-translate-y-1 hover:border-accent"
           >
+            <div className="pointer-events-none absolute inset-0 opacity-40">
+              <div className="absolute -right-10 top-0 h-32 w-32 rounded-full bg-accent blur-3xl" />
+            </div>
             <div className="flex flex-wrap items-center justify-between text-xs text-white/60">
               <div className="uppercase tracking-wide">{card.tags?.join(', ') || 'General'}</div>
               <div>{card.due ? `Due ${new Date(card.due).toLocaleDateString()}` : 'New'}</div>

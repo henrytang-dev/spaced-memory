@@ -5,10 +5,10 @@ import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 
 const links = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/cards', label: 'Cards' },
-  { href: '/cards/new', label: 'Add Card' },
-  { href: '/study', label: 'Study' }
+  { href: '/dashboard', label: 'Pulse' },
+  { href: '/cards', label: 'Archive' },
+  { href: '/cards/new', label: 'Capture' },
+  { href: '/study', label: 'Session' }
 ];
 
 export default function Navbar({ authenticated }: { authenticated: boolean }) {
@@ -24,11 +24,14 @@ export default function Navbar({ authenticated }: { authenticated: boolean }) {
   return (
     <nav className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-glow backdrop-blur-md">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="text-xl font-semibold text-white">
-            <span className="text-accent">Spaced</span> Memory
-          </Link>
-          <div className="hidden items-center gap-2 text-sm md:flex">
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex flex-1 flex-col">
+            <Link href="/" className="text-2xl font-semibold text-white">
+              <span className="text-accent">Spaced</span> Memory
+            </Link>
+            <p className="text-xs uppercase tracking-[0.5em] text-white/50">Signal aligned</p>
+          </div>
+          <div className="hidden items-center gap-2 text-sm rounded-full border border-white/10 bg-white/5 px-3 py-1 md:flex">
             {links.map((link) => {
               const isActive = active?.startsWith(link.href);
               return (

@@ -40,9 +40,9 @@ export default function CardDetailClient({ card }: { card: CardDTO }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="glass-card flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-accent">Card</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-accent">Card control</p>
           <h1 className="text-3xl font-semibold text-white">Details & editor</h1>
         </div>
         <button onClick={remove} className="btn-secondary border-red-500/50 text-red-300 hover:border-red-400">

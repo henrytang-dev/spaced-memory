@@ -28,12 +28,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-xl space-y-6">
       <div className="glass-card space-y-6">
-        <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-accent">Secure access</p>
-          <h1 className="text-3xl font-semibold text-white">Enter passphrase</h1>
-          <p className="text-sm text-white/70">This notebook is private. Provide your password to unlock it.</p>
+        <div className="space-y-2">
+          <span className="pill">Access console</span>
+          <h1 className="text-3xl font-semibold text-white">Unlock your private notebook</h1>
+          <p className="text-sm text-white/70">Enter the master passphrase to synchronize dashboards and study flows.</p>
         </div>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
@@ -48,7 +48,7 @@ export default function LoginPage() {
           </div>
           {error && <p className="text-sm text-red-400">{error}</p>}
           <button type="submit" className="btn-primary w-full justify-center text-center" disabled={loading}>
-            {loading ? 'Verifying…' : 'Unlock'}
+            {loading ? 'Verifying…' : 'Unlock cockpit'}
           </button>
         </form>
       </div>

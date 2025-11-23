@@ -53,8 +53,8 @@ export default function StudyClient() {
   if (!card) {
     return (
       <div className="glass-card text-center">
-        <p className="text-lg font-semibold text-white">All caught up!</p>
-        <p className="text-white/70">No due cards. Add more or check back later.</p>
+        <p className="text-lg font-semibold text-white">Signal clear</p>
+        <p className="text-white/70">No due cards detected. Capture a new challenge or return later.</p>
       </div>
     );
   }
@@ -62,14 +62,14 @@ export default function StudyClient() {
   return (
     <div className="space-y-6">
       <div className="glass-card space-y-4">
-        <div className="text-xs uppercase tracking-[0.3em] text-white/60">Question</div>
+        <div className="text-xs uppercase tracking-[0.3em] text-white/60">Prompt</div>
         <MarkdownView content={card.front} />
         <button className="btn-secondary mt-3" onClick={() => setShowAnswer(true)}>
           Show answer
         </button>
         {showAnswer && (
           <div className="space-y-3">
-            <div className="text-xs uppercase tracking-[0.3em] text-white/60">Answer</div>
+            <div className="text-xs uppercase tracking-[0.3em] text-white/60">Response</div>
             <MarkdownView content={card.back} />
           </div>
         )}
