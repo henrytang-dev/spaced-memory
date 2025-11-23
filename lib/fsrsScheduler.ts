@@ -1,0 +1,99 @@
+import { Card, ReviewLog } from '@prisma/client';
+import {
+  fsrs,
+  generatorParameters,
+  createEmptyCard,
+  Rating,
+  type Card as FsrsCard,
+  type ReviewLog as FsrsReviewLog
+} from 'ts-fsrs';
+import { prisma } from './prisma';
+
+const params = generatorParameters({ enable_fuzz: true, enable_short_term: false });
+const scheduler = fsrs(params);
+
+export const dbCardToFsrsCard = (card: Card): FsrsCard => {
+  const storedState = card.state;
+  let state: FsrsCard['state'];
+  if (storedState === null || storedState === undefined) {
+    state = 'New';
+  } else if (!Number.isNaN(Number(storedState))) {
+    state = Number(storedState) as FsrsCard['state'];
+  } else {
+    state = storedState as FsrsCard['state'];
+  }
+
+  return {
+    due: card.due ?? new Date(),
+    stability: card.stability ?? 0,
+    difficulty: card.difficulty ?? 0,
+    elapsed_days: card.elapsedDays ?? 0,
+    scheduled_days: card.scheduledDays ?? 0,
+    reps: card.reps ?? 0,
+    lapses: card.lapses ?? 0,
+    state,
+    last_review: card.lastReviewed ?? card.createdAt
+  };
+};
+
+export const fsrsCardToDbUpdate = (fsrsCard: FsrsCard) => ({
+  due: fsrsCard.due,
+  stability: fsrsCard.stability,
+  difficulty: fsrsCard.difficulty,
+  elapsedDays: fsrsCard.elapsed_days,
+  scheduledDays: fsrsCard.scheduled_days,
+  reps: fsrsCard.reps,
+  lapses: fsrsCard.lapses,
+  state: `${fsrsCard.state}`,
+  lastReviewed: fsrsCard.last_review
+});
+
+export const fsrsLogToReviewLog = (
+  log: FsrsReviewLog,
+  rating: Rating,
+  userId: string,
+  cardId: string
+) => {
+  const anyLog = log as any;
+  const logState = anyLog.state;
+  return {
+    userId,
+    cardId,
+    rating: Number(rating),
+    scheduledDays: anyLog.scheduled_days ?? null,
+    elapsedDays: anyLog.elapsed_days ?? null,
+    state:
+      logState === null || logState === undefined
+        ? null
+        : typeof logState === 'number'
+        ? String(logState)
+        : (logState as string),
+    reviewedAt: anyLog.review ?? new Date(),
+    logJson: log as unknown as Record<string, unknown>
+  } satisfies Omit<ReviewLog, 'id'>;
+};
+
+export async function initializeFsrsStateForCard(cardId: string, createdAt?: Date) {
+  const now = createdAt ?? new Date();
+  const fsrsCard = createEmptyCard(now);
+  return prisma.card.update({ where: { id: cardId }, data: fsrsCardToDbUpdate(fsrsCard) });
+}
+
+export async function applyReview(card: Card, rating: Rating, now = new Date()) {
+  const fsrsCard = dbCardToFsrsCard(card);
+  const schedulingCards = scheduler.repeat(fsrsCard, now);
+  const outcome = schedulingCards[rating];
+
+  const updatedCard = await prisma.card.update({
+    where: { id: card.id },
+    data: fsrsCardToDbUpdate(outcome.card)
+  });
+
+  const reviewLog = await prisma.reviewLog.create({
+    data: fsrsLogToReviewLog(outcome.log, rating, card.userId, card.id)
+  });
+
+  return { updatedCard, reviewLog };
+}
+
+export { Rating };
