@@ -23,12 +23,15 @@ export const dbCardToFsrsCard = (card: Card): FsrsCard => {
     state = Number(storedState) as FsrsCard['state'];
   }
 
+  const learningSteps = (card as unknown as { learning_steps?: number }).learning_steps ?? 0;
+
   return {
     due: card.due ?? new Date(),
     stability: card.stability ?? 0,
     difficulty: card.difficulty ?? 0,
     elapsed_days: card.elapsedDays ?? 0,
     scheduled_days: card.scheduledDays ?? 0,
+    learning_steps: learningSteps,
     reps: card.reps ?? 0,
     lapses: card.lapses ?? 0,
     state,
