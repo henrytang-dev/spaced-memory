@@ -5,7 +5,8 @@ import {
   createEmptyCard,
   Rating,
   type Card as FsrsCard,
-  type ReviewLog as FsrsReviewLog
+  type ReviewLog as FsrsReviewLog,
+  type IPreview
 } from 'ts-fsrs';
 import { prisma } from './prisma';
 
@@ -56,7 +57,7 @@ export const fsrsLogToReviewLog = (
   rating: Rating,
   userId: string,
   cardId: string
-) => {
+): Prisma.ReviewLogUncheckedCreateInput => {
   const anyLog = log as any;
   const logState = anyLog.state;
   return {
@@ -72,8 +73,8 @@ export const fsrsLogToReviewLog = (
         ? String(logState)
         : (logState as string),
     reviewedAt: anyLog.review ?? new Date(),
-    logJson: log as unknown as Prisma.JsonValue
-  } satisfies Omit<ReviewLog, 'id'>;
+    logJson: log as unknown as Prisma.InputJsonValue
+  };
 };
 
 export async function initializeFsrsStateForCard(cardId: string, createdAt?: Date) {
@@ -82,24 +83,27 @@ export async function initializeFsrsStateForCard(cardId: string, createdAt?: Dat
   return prisma.card.update({ where: { id: cardId }, data: fsrsCardToDbUpdate(fsrsCard) });
 }
 
-function ratingToKey(rating: Rating): 'again' | 'hard' | 'good' | 'easy' {
+type GradeValue = Exclude<Rating, Rating.Manual>;
+
+function ratingToGrade(rating: Rating): GradeValue {
   switch (rating) {
     case Rating.Again:
-      return 'again';
+      return Rating.Again;
     case Rating.Hard:
-      return 'hard';
+      return Rating.Hard;
     case Rating.Good:
-      return 'good';
+      return Rating.Good;
     case Rating.Easy:
     default:
-      return 'easy';
+      return Rating.Easy;
   }
 }
 
 export async function applyReview(card: Card, rating: Rating, now = new Date()) {
   const fsrsCard = dbCardToFsrsCard(card);
-  const schedulingCards = scheduler.repeat(fsrsCard, now) as FSRSReturn;
-  const outcome = schedulingCards[ratingToKey(rating)];
+  const schedulingCards: IPreview = scheduler.repeat(fsrsCard, now);
+  const grade = ratingToGrade(rating);
+  const outcome = schedulingCards[grade];
 
   const updatedCard = await prisma.card.update({
     where: { id: card.id },
