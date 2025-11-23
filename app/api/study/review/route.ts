@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireUser } from '@/lib/apiAuth';
+import { requireUser } from '@/lib/authSession';
 import { applyReview, Rating } from '@/lib/fsrsScheduler';
 
 export async function POST(req: Request) {

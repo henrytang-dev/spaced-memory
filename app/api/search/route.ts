@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireUser } from '@/lib/apiAuth';
+import { requireUser } from '@/lib/authSession';
 import { embedText, searchByEmbedding } from '@/lib/embeddings';
 import { prisma } from '@/lib/prisma';
 

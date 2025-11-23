@@ -1,13 +1,11 @@
-import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { isAuthenticated } from '@/lib/authSession';
+import { getSingleUserId } from '@/lib/singleUser';
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) redirect('/auth/login');
-
-  const userId = session.user.id;
+  if (!isAuthenticated()) redirect('/auth/login');
+  const userId = await getSingleUserId();
   const now = new Date();
 
   const [dueCount, totalCards, recentReviews] = await Promise.all([

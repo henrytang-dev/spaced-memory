@@ -1,11 +1,7 @@
-import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions } from '@/lib/auth';
+import { isAuthenticated } from '@/lib/authSession';
 
-export default async function Home() {
-  const session = await getServerSession(authOptions);
-  if (session?.user) {
-    redirect('/dashboard');
-  }
-  redirect('/auth/login');
+export default function Home() {
+  const authed = isAuthenticated();
+  redirect(authed ? '/dashboard' : '/auth/login');
 }

@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
 import { useMemo } from 'react';
 
 const links = [
@@ -12,11 +11,15 @@ const links = [
   { href: '/study', label: 'Study' }
 ];
 
-export default function Navbar() {
+export default function Navbar({ authenticated }: { authenticated: boolean }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
 
   const active = useMemo(() => pathname, [pathname]);
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/auth/login';
+  };
 
   return (
     <nav className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-glow backdrop-blur-md">
@@ -43,22 +46,14 @@ export default function Navbar() {
           </div>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          {session?.user ? (
-            <>
-              <span className="hidden text-white/70 sm:block">{session.user.email}</span>
-              <button onClick={() => signOut({ callbackUrl: '/auth/login' })} className="btn-secondary whitespace-nowrap">
-                Logout
-              </button>
-            </>
+          {authenticated ? (
+            <button onClick={handleLogout} className="btn-secondary whitespace-nowrap">
+              Logout
+            </button>
           ) : (
-            <>
-              <Link href="/auth/login" className="btn-secondary whitespace-nowrap">
-                Login
-              </Link>
-              <Link href="/auth/register" className="btn-primary whitespace-nowrap">
-                Register
-              </Link>
-            </>
+            <Link href="/auth/login" className="btn-primary whitespace-nowrap">
+              Login
+            </Link>
           )}
         </div>
       </div>

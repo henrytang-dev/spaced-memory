@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireUser } from '@/lib/apiAuth';
+import { requireUser } from '@/lib/authSession';
 import { updateCardEmbedding } from '@/lib/embeddings';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {

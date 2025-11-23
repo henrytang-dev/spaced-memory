@@ -1,48 +1,41 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    const res = await signIn('credentials', {
-      redirect: false,
-      email,
-      password,
-      callbackUrl
+    setLoading(true);
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
     });
-    if (res?.error) {
-      setError('Invalid credentials');
-    } else {
-      router.push(callbackUrl);
+    setLoading(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: 'Invalid password' }));
+      setError(data.error || 'Invalid password');
+      return;
     }
+    router.push('/dashboard');
   };
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
-      <div className="glass-card">
-        <h1 className="mb-6 text-3xl font-semibold">Welcome back</h1>
+    <div className="mx-auto max-w-md">
+      <div className="glass-card space-y-6">
+        <div>
+          <p className="text-sm uppercase tracking-[0.3em] text-accent">Secure access</p>
+          <h1 className="text-3xl font-semibold text-white">Enter passphrase</h1>
+          <p className="text-sm text-white/70">This notebook is private. Provide your password to unlock it.</p>
+        </div>
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label className="mb-1 block text-sm text-white/70">Email</label>
-            <input
-              type="email"
-              className="input-field"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
           <div>
             <label className="mb-1 block text-sm text-white/70">Password</label>
             <input
@@ -54,17 +47,11 @@ export default function LoginPage() {
             />
           </div>
           {error && <p className="text-sm text-red-400">{error}</p>}
-          <button type="submit" className="btn-primary w-full justify-center text-center">
-            Sign In
+          <button type="submit" className="btn-primary w-full justify-center text-center" disabled={loading}>
+            {loading ? 'Verifying…' : 'Unlock'}
           </button>
         </form>
       </div>
-      <p className="text-center text-sm text-white/70">
-        New here?{' '}
-        <a className="text-accent" href="/auth/register">
-          Create an account
-        </a>
-      </p>
     </div>
   );
 }

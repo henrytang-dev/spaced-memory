@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireUser } from '@/lib/apiAuth';
+import { requireUser } from '@/lib/authSession';
 import { initializeFsrsStateForCard } from '@/lib/fsrsScheduler';
 import { updateCardEmbedding } from '@/lib/embeddings';
 

@@ -1,14 +1,14 @@
-import { getServerSession } from 'next-auth';
 import { redirect, notFound } from 'next/navigation';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import CardDetailClient from './CardDetailClient';
+import { isAuthenticated } from '@/lib/authSession';
+import { getSingleUserId } from '@/lib/singleUser';
 
 export default async function CardDetailPage({ params }: { params: { id: string } }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) redirect('/auth/login');
+  if (!isAuthenticated()) redirect('/auth/login');
 
-  const card = await prisma.card.findFirst({ where: { id: params.id, userId: session.user.id } });
+  const userId = await getSingleUserId();
+  const card = await prisma.card.findFirst({ where: { id: params.id, userId } });
   if (!card) return notFound();
 
   const serialized = {

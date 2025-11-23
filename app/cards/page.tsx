@@ -1,15 +1,14 @@
-import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import CardsClient from './CardsClient';
+import { isAuthenticated } from '@/lib/authSession';
+import { getSingleUserId } from '@/lib/singleUser';
 
 export default async function CardsPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) redirect('/auth/login');
-
+  if (!isAuthenticated()) redirect('/auth/login');
+  const userId = await getSingleUserId();
   const cards = await prisma.card.findMany({
-    where: { userId: session.user.id },
+    where: { userId },
     orderBy: { createdAt: 'desc' },
     take: 50
   });
