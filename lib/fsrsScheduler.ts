@@ -16,7 +16,7 @@ export const dbCardToFsrsCard = (card: Card): FsrsCard => {
   const storedState = card.state;
   let state: FsrsCard['state'];
   if (storedState === null || storedState === undefined) {
-    state = 'New';
+    state = 0 as FsrsCard['state'];
   } else if (!Number.isNaN(Number(storedState))) {
     state = Number(storedState) as FsrsCard['state'];
   } else {
