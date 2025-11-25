@@ -15,14 +15,16 @@ export async function POST(req: Request) {
     const providedFront = (formData.get('front') as string) || '';
     const providedBack = (formData.get('back') as string) || '';
 
-    if (!(file instanceof File)) {
+    if (!(file instanceof Blob)) {
       return NextResponse.json({ error: 'Image file is required' }, { status: 400 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const parsed = await parseMathpixImage(buffer);
+    const latexBlock = parsed.latex ? `$$\n${parsed.latex}\n$$` : '';
+    const markdownText = parsed.markdown || parsed.text || '';
 
-    const front = providedFront || parsed.latex || parsed.text || '';
+    const front = providedFront || latexBlock || markdownText || parsed.text || '';
     const back = providedBack;
 
     const source = await prisma.source.create({
@@ -49,7 +51,10 @@ export async function POST(req: Request) {
     const updatedCard = await initializeFsrsStateForCard(card.id, card.createdAt);
     await updateCardEmbedding(card.id, userId, `${front}\n\n${back}`);
 
-    return NextResponse.json({ card: updatedCard, ocr: parsed });
+    return NextResponse.json({
+      card: updatedCard,
+      ocr: { ...parsed, formattedFront: front }
+    });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to process image' }, { status: 500 });

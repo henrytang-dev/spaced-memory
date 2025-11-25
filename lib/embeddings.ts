@@ -29,6 +29,9 @@ export async function embedText(text: string): Promise<number[]> {
 }
 
 export async function updateCardEmbedding(cardId: string, userId: string, text: string) {
+  if (!process.env.OPENAI_API_KEY) {
+    return;
+  }
   try {
     const embedding = await embedText(text);
     const vectorLiteral = `[${embedding.join(',')}]`;
@@ -44,6 +47,9 @@ export async function updateCardEmbedding(cardId: string, userId: string, text: 
 }
 
 export async function searchByEmbedding(userId: string, embedding: number[], limit = 10) {
+  if (!process.env.OPENAI_API_KEY) {
+    return [];
+  }
   const vector = `[${embedding.join(',')}]`;
   const results = await prisma.$queryRawUnsafe<
     { cardId: string; score: number }[]

@@ -10,6 +10,10 @@ export async function GET(req: NextRequest) {
   const query = new URL(req.url).searchParams.get('q');
   if (!query) return NextResponse.json({ results: [] });
 
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json({ results: [], info: 'Embeddings disabled' });
+  }
+
   try {
     const embedding = await embedText(query);
     const matches = await searchByEmbedding(userId, embedding, 10);
