@@ -9,6 +9,7 @@ export default function NewCardForm() {
   const [back, setBack] = useState('');
   const [tags, setTags] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [backFile, setBackFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [ocrPreview, setOcrPreview] = useState<string | null>(null);
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function NewCardForm() {
     });
     if (res.ok) {
       setStatus('Created!');
+      router.refresh();
       router.push('/cards');
     } else {
       const data = await res.json().catch(() => ({ error: 'Failed' }));
@@ -32,13 +34,14 @@ export default function NewCardForm() {
 
   const submitImage = async (e: FormEvent) => {
     e.preventDefault();
-    if (!file) {
-      setStatus('Please choose an image');
+    if (!file && !backFile) {
+      setStatus('Please upload a question image or answer image');
       return;
     }
     setStatus('Uploading...');
     const formData = new FormData();
-    formData.append('file', file);
+    if (file) formData.append('frontImage', file);
+    if (backFile) formData.append('backImage', backFile);
     if (front) formData.append('front', front);
     if (back) formData.append('back', back);
 
@@ -48,10 +51,11 @@ export default function NewCardForm() {
       setStatus(data.error || 'Upload failed');
       return;
     }
-    setOcrPreview(data.ocr?.markdown || data.ocr?.latex || data.ocr?.text || '');
+    setOcrPreview(data.ocr?.front?.markdown || data.ocr?.front?.latex || data.ocr?.front?.text || '');
     setFront(data.card?.front || front);
     setBack(data.card?.back || back);
     setStatus('Created card from image');
+    router.refresh();
     router.push(`/cards/${data.card?.id ?? ''}`);
   };
 
@@ -101,14 +105,47 @@ export default function NewCardForm() {
         </form>
       ) : (
         <form className="space-y-4" onSubmit={submitImage}>
-          <div>
-            <label className="mb-1 block text-sm text-white/70">Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="text-sm text-white/70"
-            />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div
+              className="flex flex-col gap-2 rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-4 text-sm text-white/80 transition hover:border-accent"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const f = e.dataTransfer.files?.[0];
+                if (f) setFile(f);
+              }}
+            >
+              <div className="font-semibold text-white">Question image</div>
+              <label className="cursor-pointer rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-center hover:border-accent">
+                {file ? `Selected: ${file.name}` : 'Click or drag to upload'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                />
+              </label>
+            </div>
+            <div
+              className="flex flex-col gap-2 rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-4 text-sm text-white/80 transition hover:border-accent"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const f = e.dataTransfer.files?.[0];
+                if (f) setBackFile(f);
+              }}
+            >
+              <div className="font-semibold text-white">Answer image (optional)</div>
+              <label className="cursor-pointer rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-center hover:border-accent">
+                {backFile ? `Selected: ${backFile.name}` : 'Click or drag to upload'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => setBackFile(e.target.files?.[0] || null)}
+                />
+              </label>
+            </div>
           </div>
           <div>
             <label className="mb-1 block text-sm text-white/70">Question (front) override</label>

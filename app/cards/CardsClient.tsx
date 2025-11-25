@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import MarkdownView from '@/components/MarkdownView';
 
 export type CardDTO = {
   id: string;
@@ -96,12 +97,12 @@ export default function CardsClient({ initialCards }: { initialCards: CardDTO[] 
               <div className="uppercase tracking-wide">{card.tags?.join(', ') || 'General'}</div>
               <div>{card.due ? `Due ${new Date(card.due).toLocaleDateString()}` : 'New'}</div>
             </div>
-            <div className="mt-3 text-lg font-semibold text-white">
-              {card.front.length > 180 ? `${card.front.slice(0, 180)}…` : card.front}
+            <div className="mt-3 text-lg font-semibold text-white max-h-32 overflow-hidden">
+              <MarkdownView content={card.front} />
             </div>
-            <p className="mt-2 text-sm text-white/70">
-              {card.back.length > 180 ? `${card.back.slice(0, 180)}…` : card.back}
-            </p>
+            <div className="mt-2 text-sm text-white/70 max-h-24 overflow-hidden">
+              <MarkdownView content={card.back} />
+            </div>
           </Link>
         ))}
       </div>

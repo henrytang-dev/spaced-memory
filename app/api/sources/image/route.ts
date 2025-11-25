@@ -4,6 +4,29 @@ import { requireUser } from '@/lib/authSession';
 import { parseMathpixImage } from '@/lib/mathpix';
 import { initializeFsrsStateForCard } from '@/lib/fsrsScheduler';
 import { updateCardEmbedding } from '@/lib/embeddings';
+import { revalidatePath } from 'next/cache';
+
+function ensureBlockMath(text: string) {
+  if (!text) return text;
+
+  let normalized = text;
+
+  // Convert display math delimiters \[...\] to $$...$$ (block)
+  normalized = normalized.replace(/\\\[\s*([\s\S]*?)\s*\\\]/g, (_m, inner) => `$$\n${inner}\n$$`);
+  // Convert inline math delimiters \(...\) to $...$
+  normalized = normalized.replace(/\\\(\s*([\s\S]*?)\s*\\\)/g, (_m, inner) => `$${inner}$`);
+
+  const hasBlock = /\$\$/.test(normalized);
+  const hasEnv = /\\begin\{[^}]+\}/.test(normalized);
+  const hasInline = /(^|[^$])\$(?!\$)([^$]+?)\$(?!\$)/.test(normalized);
+
+  // If we see an environment but no block delimiters, wrap the whole math block
+  if (hasEnv && !hasBlock && !hasInline) {
+    normalized = `$$\n${normalized}\n$$`;
+  }
+
+  return normalized;
+}
 
 export async function POST(req: Request) {
   const { userId, response } = await requireUser();
@@ -11,7 +34,8 @@ export async function POST(req: Request) {
 
   try {
     const formData = await req.formData();
-    const file = formData.get('file');
+    const file = formData.get('file') ?? formData.get('frontImage');
+    const backFile = formData.get('backImage');
     const providedFront = (formData.get('front') as string) || '';
     const providedBack = (formData.get('back') as string) || '';
 
@@ -20,20 +44,29 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const parsed = await parseMathpixImage(buffer);
-    const latexBlock = parsed.latex ? `$$\n${parsed.latex}\n$$` : '';
-    const markdownText = parsed.markdown || parsed.text || '';
+    const parsedFront = await parseMathpixImage(buffer);
+    const latexBlock = parsedFront.latex ? ensureBlockMath(parsedFront.latex) : '';
+    const markdownText = ensureBlockMath(parsedFront.markdown || parsedFront.text || '');
 
-    const front = providedFront || latexBlock || markdownText || parsed.text || '';
-    const back = providedBack;
+    let back = ensureBlockMath(providedBack);
+    let parsedBack: any = null;
+    if (backFile instanceof Blob) {
+      const backBuffer = Buffer.from(await backFile.arrayBuffer());
+      parsedBack = await parseMathpixImage(backBuffer);
+      const backLatexBlock = parsedBack.latex ? ensureBlockMath(parsedBack.latex) : '';
+      const backMarkdownText = ensureBlockMath(parsedBack.markdown || parsedBack.text || '');
+      back = ensureBlockMath(providedBack || backLatexBlock || backMarkdownText || parsedBack.text || '');
+    }
+
+    const front = ensureBlockMath(providedFront || latexBlock || markdownText || parsedFront.text || '');
 
     const source = await prisma.source.create({
       data: {
         userId,
         type: 'IMAGE',
-        rawText: parsed.text,
-        latex: parsed.latex,
-        markdown: parsed.markdown,
+        rawText: parsedFront.text,
+        latex: parsedFront.latex,
+        markdown: parsedFront.markdown,
         imageUrl: null
       }
     });
@@ -51,9 +84,12 @@ export async function POST(req: Request) {
     const updatedCard = await initializeFsrsStateForCard(card.id, card.createdAt);
     await updateCardEmbedding(card.id, userId, `${front}\n\n${back}`);
 
+    revalidatePath('/cards');
+    revalidatePath('/dashboard');
+    revalidatePath('/study');
     return NextResponse.json({
       card: updatedCard,
-      ocr: { ...parsed, formattedFront: front }
+      ocr: { front: parsedFront, back: parsedBack, formattedFront: front, formattedBack: back }
     });
   } catch (err) {
     console.error(err);

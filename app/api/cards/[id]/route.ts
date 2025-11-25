@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/authSession';
 import { updateCardEmbedding } from '@/lib/embeddings';
+import { revalidatePath } from 'next/cache';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const { userId, response } = await requireUser();
@@ -32,6 +33,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   await updateCardEmbedding(card.id, userId, `${card.front}\n\n${card.back}`);
 
+  revalidatePath('/cards');
+  revalidatePath('/dashboard');
+  revalidatePath('/study');
   return NextResponse.json(card);
 }
 
@@ -43,5 +47,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   await prisma.card.delete({ where: { id: params.id } });
+  revalidatePath('/cards');
+  revalidatePath('/dashboard');
+  revalidatePath('/study');
   return NextResponse.json({ success: true });
 }
