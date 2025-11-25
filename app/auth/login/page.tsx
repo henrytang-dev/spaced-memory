@@ -24,6 +24,8 @@ export default function LoginPage() {
       setError(data.error || 'Invalid password');
       return;
     }
+    // Ensure layout re-renders with the new auth cookie
+    router.refresh();
     router.push('/dashboard');
   };
 
