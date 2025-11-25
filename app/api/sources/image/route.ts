@@ -39,14 +39,23 @@ export async function POST(req: Request) {
     const providedFront = (formData.get('front') as string) || '';
     const providedBack = (formData.get('back') as string) || '';
 
-    if (!(file instanceof Blob)) {
-      return NextResponse.json({ error: 'Image file is required' }, { status: 400 });
+    // Allow two modes:
+    // 1) Front image provided (file/frontImage)
+    // 2) No front image, but front text is provided and (optionally) an answer image/back text
+    if (!(file instanceof Blob) && !providedFront) {
+      return NextResponse.json({ error: 'Provide a question image or question text' }, { status: 400 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const parsedFront = await parseMathpixImage(buffer);
-    const latexBlock = parsedFront.latex ? ensureBlockMath(parsedFront.latex) : '';
-    const markdownText = ensureBlockMath(parsedFront.markdown || parsedFront.text || '');
+    let parsedFront: any = null;
+    let latexBlock = '';
+    let markdownText = '';
+
+    if (file instanceof Blob) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      parsedFront = await parseMathpixImage(buffer);
+      latexBlock = parsedFront.latex ? ensureBlockMath(parsedFront.latex) : '';
+      markdownText = ensureBlockMath(parsedFront.markdown || parsedFront.text || '');
+    }
 
     let back = ensureBlockMath(providedBack);
     let parsedBack: any = null;
@@ -58,15 +67,15 @@ export async function POST(req: Request) {
       back = ensureBlockMath(providedBack || backLatexBlock || backMarkdownText || parsedBack.text || '');
     }
 
-    const front = ensureBlockMath(providedFront || latexBlock || markdownText || parsedFront.text || '');
+    const front = ensureBlockMath(providedFront || latexBlock || markdownText || parsedFront?.text || '');
 
     const source = await prisma.source.create({
       data: {
         userId,
         type: 'IMAGE',
-        rawText: parsedFront.text,
-        latex: parsedFront.latex,
-        markdown: parsedFront.markdown,
+        rawText: parsedFront?.text || providedFront || null,
+        latex: parsedFront?.latex || null,
+        markdown: parsedFront?.markdown || providedFront || null,
         imageUrl: null
       }
     });
