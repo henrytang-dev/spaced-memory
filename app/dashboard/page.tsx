@@ -36,8 +36,8 @@ export default async function DashboardPage() {
 
   const metrics = [
     { label: 'Due now', value: dueCount },
-    { label: 'Total cards', value: totalCards },
-    { label: 'Reviews (24h)', value: recentReviews }
+    { label: 'Total', value: totalCards },
+    { label: '24h reviews', value: recentReviews }
   ];
 
   const highlights = [
@@ -57,7 +57,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-10">
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="glass-card overflow-hidden">
+        <div className="glass-card overflow-hidden hidden lg:block">
           <div className="relative z-10 space-y-5">
             <span className="pill">Cognitive console</span>
             <h1 className="text-4xl font-semibold leading-tight text-white md:text-5xl">
@@ -90,20 +90,23 @@ export default async function DashboardPage() {
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-white">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible sm:pb-0">
           {metrics.map((metric) => (
-            <div key={metric.label} className="rounded-2xl border border-white/5 bg-white/0 px-3 py-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-white/60">{metric.label}</p>
-              <p className="mt-1 text-3xl font-semibold">{metric.value}</p>
+            <div
+              key={metric.label}
+              className="min-w-[140px] rounded-2xl border border-white/5 bg-white/0 px-3 py-3 text-left"
+            >
+              <p className="text-[11px] uppercase tracking-[0.3em] text-white/60">{metric.label}</p>
+              <p className="mt-1 text-2xl font-semibold">{metric.value}</p>
             </div>
           ))}
-          <div className="rounded-2xl border border-white/5 px-3 py-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-white/60">Search</p>
+          <div className="min-w-[180px] rounded-2xl border border-white/5 px-3 py-3">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-white/60">Search</p>
             <div className="mt-2 flex items-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-3 py-2 text-sm text-white/70">
               <span>🔍</span>
               <input
                 type="text"
-                placeholder="Search cards or decks"
+                placeholder="Search"
                 className="flex-1 bg-transparent text-white placeholder:text-white/60 focus:outline-none"
               />
             </div>
@@ -111,8 +114,14 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <HighlightsGrid stats={highlights} />
-      <DeckPreview playlists={playlistPreview.slice(0, 4)} />
+      <div className="space-y-4 lg:space-y-6">
+        <div className="hidden md:block">
+          <HighlightsGrid stats={highlights} />
+        </div>
+        <div className="hidden lg:block">
+          <DeckPreview playlists={playlistPreview.slice(0, 4)} />
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="chrome-card space-y-4">

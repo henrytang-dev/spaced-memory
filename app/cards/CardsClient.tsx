@@ -47,40 +47,20 @@ export default function CardsClient({ initialCards }: { initialCards: CardDTO[] 
 
   return (
     <div className="space-y-6">
-      <div className="glass-card flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
+      <div className="glass-card flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-1">
           <span className="pill">Neural archive</span>
-          <h1 className="text-3xl font-semibold text-white md:text-4xl">
-            Curate your{' '}
-            <span className="text-transparent bg-gradient-to-r from-accent via-cyan-200 to-white bg-clip-text">
-              knowledge grid
-            </span>
-          </h1>
-          <p className="text-sm text-white/60">
-            Mathpix captures, Markdown edits, and embeddings are kept in sync across this gallery.
-          </p>
+          <h1 className="text-2xl font-semibold text-white md:text-3xl">Curate your knowledge grid</h1>
+          <p className="text-xs text-white/60">Mathpix captures and edits stay synced here.</p>
         </div>
-        <div className="flex gap-3">
-          <Link href="/cards/new" className="btn-primary">
+        <div className="flex gap-2">
+          <Link href="/cards/new" className="btn-primary px-4 py-2 text-sm">
             New card
           </Link>
-          <a href="/study" className="btn-secondary">
+          <a href="/study" className="btn-secondary px-4 py-2 text-sm">
             Study
           </a>
         </div>
-      </div>
-
-      <div className="glass-card flex flex-col gap-3 md:flex-row">
-        <input
-          type="text"
-          placeholder="Semantic search across prompts + answers"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="input-field flex-1"
-        />
-        <button onClick={handleSearch} className="btn-secondary" disabled={loading}>
-          {loading ? 'Searching...' : 'Search'}
-        </button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

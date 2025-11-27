@@ -25,8 +25,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="w-full max-w-2xl">{children}</div>
           </div>
         ) : (
-          <div className="h-screen px-2 py-2 sm:px-4">
-            <div className="shell mx-auto flex h-full w-full max-h-[calc(100vh-32px)] max-w-[calc(100vw-32px)] rounded-[28px] p-3 sm:p-5">
+          <div className="min-h-screen lg:h-screen px-2 py-2 sm:px-4">
+            <div className="shell mx-auto flex h-full w-full max-w-[calc(100vw-32px)] lg:max-h-[calc(100vh-32px)] rounded-[28px] p-3 sm:p-5">
               <div className="flex h-full w-full flex-col gap-3 lg:grid lg:grid-cols-[70px_240px_1fr] lg:gap-4">
                 <div className="hidden lg:block">
                   <IconRail />
@@ -34,7 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <div className="hidden lg:flex">
                   <LibrarySidebar authenticated={authenticated} stats={data?.stats} playlists={data?.playlistsSidebar} />
                 </div>
-                <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-[28px] border border-white/10 bg-white/10 px-3 py-4 sm:px-5 sm:py-5 backdrop-blur-2xl">
+                <div className="flex h-full min-h-0 flex-col gap-3 overflow-visible rounded-[28px] border border-white/10 bg-white/10 px-3 py-4 sm:px-5 sm:py-5 backdrop-blur-2xl pb-16">
                   <div className="lg:hidden">
                     <MobileNav />
                   </div>

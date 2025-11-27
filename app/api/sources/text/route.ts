@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/authSession';
 import { initializeFsrsStateForCard } from '@/lib/fsrsScheduler';
 import { updateCardEmbedding } from '@/lib/embeddings';
 import { revalidatePath } from 'next/cache';
+import { addCardToPlaylist, ensureUnfiledPlaylist } from '@/lib/playlists';
 
 function ensureBlockMath(text: string) {
   if (!text) return text;
@@ -62,6 +63,9 @@ export async function POST(req: Request) {
         tags
       }
     });
+
+    const unfiled = await ensureUnfiledPlaylist(userId);
+    await addCardToPlaylist(card.id, unfiled.id);
 
     const updatedCard = await initializeFsrsStateForCard(card.id, card.createdAt);
     await updateCardEmbedding(card.id, userId, `${frontNormalized}\n\n${backNormalized}`);
