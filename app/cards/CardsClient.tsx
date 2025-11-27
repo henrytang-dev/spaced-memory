@@ -6,6 +6,7 @@ import MarkdownView from '@/components/MarkdownView';
 
 export type CardDTO = {
   id: string;
+  playlist?: string;
   front: string;
   back: string;
   tags: string[];
@@ -74,7 +75,12 @@ export default function CardsClient({ initialCards }: { initialCards: CardDTO[] 
               <div className="absolute -right-10 top-0 h-32 w-32 rounded-full bg-accent blur-3xl" />
             </div>
             <div className="flex flex-wrap items-center justify-between text-xs text-white/60">
-              <div className="uppercase tracking-wide">{card.tags?.join(', ') || 'General'}</div>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] uppercase tracking-wide">
+                  {card.playlist || 'Unfiled'}
+                </span>
+                <span className="uppercase tracking-wide">{card.tags?.join(', ') || 'General'}</span>
+              </div>
               <div>{card.due ? `Due ${new Date(card.due).toLocaleDateString()}` : 'New'}</div>
             </div>
             <div className="mt-3 text-lg font-semibold text-white max-h-32 overflow-hidden">

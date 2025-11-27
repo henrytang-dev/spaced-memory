@@ -34,6 +34,19 @@ export default async function DashboardPage() {
     })
   ]);
 
+  const memberships = await prisma.playlistCard.findMany({
+    where: { cardId: { in: latestCards.map((c) => c.id) } },
+    include: { playlist: true }
+  });
+
+  const playlistByCard = new Map<string, string>();
+  memberships.forEach((m) => {
+    const name = m.playlist?.name || 'Unfiled';
+    if (!playlistByCard.has(m.cardId) || name === 'Unfiled') {
+      playlistByCard.set(m.cardId, name);
+    }
+  });
+
   const metrics = [
     { label: 'Due now', value: dueCount },
     { label: 'Total', value: totalCards },
@@ -133,23 +146,26 @@ export default async function DashboardPage() {
           </div>
           <div className="space-y-4">
             {latestCards.map((card) => (
-              <a
-                key={card.id}
-                href={`/cards/${card.id}`}
-                className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition hover:border-accent"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="max-h-16 overflow-hidden text-sm font-semibold text-white">
-                    <MarkdownView content={card.front} />
-                  </div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-white/50">
-                    {card.tags?.join(', ') || 'general'}
-                  </p>
+            <a
+              key={card.id}
+              href={`/cards/${card.id}`}
+              className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition hover:border-accent"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="mb-1 flex items-center gap-2 text-[11px] uppercase text-white/60">
+                  <span className="rounded-full border border-white/20 px-2 py-0.5">
+                    {playlistByCard.get(card.id) || 'Unfiled'}
+                  </span>
+                  <span className="hidden sm:inline">{card.tags?.join(', ') || 'general'}</span>
                 </div>
-                <span className="whitespace-nowrap text-xs text-white/60">
-                  {new Date(card.createdAt).toLocaleDateString()}
-                </span>
-              </a>
+                <div className="max-h-16 overflow-hidden text-sm font-semibold text-white">
+                  <MarkdownView content={card.front} />
+                </div>
+              </div>
+              <span className="whitespace-nowrap text-xs text-white/60">
+                {new Date(card.createdAt).toLocaleDateString()}
+              </span>
+            </a>
             ))}
             {latestCards.length === 0 && <p className="text-sm text-white/60">No cards captured yet.</p>}
           </div>
