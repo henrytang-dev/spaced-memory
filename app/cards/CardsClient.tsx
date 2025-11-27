@@ -79,7 +79,9 @@ export default function CardsClient({ initialCards }: { initialCards: CardDTO[] 
                 <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] uppercase tracking-wide">
                   {card.playlist || 'Unfiled'}
                 </span>
-                <span className="uppercase tracking-wide">{card.tags?.join(', ') || 'General'}</span>
+                {card.tags?.length ? (
+                  <span className="uppercase tracking-wide">{card.tags.join(', ')}</span>
+                ) : null}
               </div>
               <div>{card.due ? `Due ${new Date(card.due).toLocaleDateString()}` : 'New'}</div>
             </div>

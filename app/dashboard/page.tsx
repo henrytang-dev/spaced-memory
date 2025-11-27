@@ -146,22 +146,22 @@ export default async function DashboardPage() {
           </div>
           <div className="space-y-4">
             {latestCards.map((card) => (
-            <a
-              key={card.id}
-              href={`/cards/${card.id}`}
-              className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition hover:border-accent"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="mb-1 flex items-center gap-2 text-[11px] uppercase text-white/60">
-                  <span className="rounded-full border border-white/20 px-2 py-0.5">
-                    {playlistByCard.get(card.id) || 'Unfiled'}
-                  </span>
-                  <span className="hidden sm:inline">{card.tags?.join(', ') || 'general'}</span>
+              <a
+                key={card.id}
+                href={`/cards/${card.id}`}
+                className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition hover:border-accent"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="mb-1 flex items-center gap-2 text-[11px] uppercase text-white/60">
+                    <span className="rounded-full border border-white/20 px-2 py-0.5">
+                      {playlistByCard.get(card.id) || 'Unfiled'}
+                    </span>
+                    {card.tags?.length ? <span className="hidden sm:inline">{card.tags.join(', ')}</span> : null}
+                  </div>
+                  <div className="max-h-16 overflow-hidden text-sm font-semibold text-white">
+                    <MarkdownView content={card.front} />
+                  </div>
                 </div>
-                <div className="max-h-16 overflow-hidden text-sm font-semibold text-white">
-                  <MarkdownView content={card.front} />
-                </div>
-              </div>
               <span className="whitespace-nowrap text-xs text-white/60">
                 {new Date(card.createdAt).toLocaleDateString()}
               </span>

@@ -7,6 +7,7 @@ import PlaybackBar from '@/components/PlaybackBar';
 import { prisma } from '@/lib/prisma';
 import { getSingleUserId } from '@/lib/singleUser';
 import MobileNav from '@/components/MobileNav';
+import { headers } from 'next/headers';
 
 export const metadata: Metadata = {
   title: 'Spaced Memory',
@@ -16,6 +17,8 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const authenticated = isAuthenticated();
   const data = authenticated ? await gatherLayoutData() : null;
+  const pathname = headers().get('x-pathname') || '';
+  const showPlayback = authenticated && !pathname.startsWith('/study');
 
   return (
     <html lang="en" className="dark">
@@ -58,7 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <div className="h-full overflow-auto px-3 py-4 sm:px-5">{children}</div>
                   </div>
 
-                  <PlaybackBar />
+                  {showPlayback && <PlaybackBar />}
                 </div>
               </div>
             </div>
