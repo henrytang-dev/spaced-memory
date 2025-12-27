@@ -28,6 +28,12 @@ export default async function PlaylistDetailPage({ params }: { params: { id: str
         <h1 className="text-3xl font-semibold text-white">{playlist.name}</h1>
         {playlist.description && <p className="text-sm text-white/70">{playlist.description}</p>}
         <p className="text-xs text-white/60">{playlist.cards.length} cards</p>
+        <a
+          href={`/study?playlistId=${playlist.id}&playlistName=${encodeURIComponent(playlist.name)}`}
+          className="btn-primary mt-3 inline-block px-4 py-2 text-sm"
+        >
+          Review this playlist
+        </a>
       </div>
       <div className="glass-card space-y-3">
         {playlist.cards.length === 0 ? (

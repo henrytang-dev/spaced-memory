@@ -25,6 +25,7 @@ export default function StudyClient() {
   const [hydrated, setHydrated] = useState(false);
   const [playlistId, setPlaylistId] = useState<string | undefined>(undefined);
   const [playlistLabel, setPlaylistLabel] = useState<string | undefined>(undefined);
+  const [playlists, setPlaylists] = useState<{ id: string; name: string }[]>([]);
 
   const loadNext = async () => {
     setLoading(true);
@@ -159,7 +160,7 @@ export default function StudyClient() {
   const canPrev = currentIndex > 0;
   const canNext = currentIndex < history.length - 1 || !loading;
 
-  // Hydrate history from localStorage on mount
+  // Hydrate history from localStorage on mount and read playlist params
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
@@ -208,6 +209,34 @@ export default function StudyClient() {
     }
   }, [hydrated]);
 
+  // Fetch playlists for selector
+  useEffect(() => {
+    const fetchPlaylists = async () => {
+      try {
+        const res = await fetch('/api/playlists');
+        const data = await res.json();
+        if (Array.isArray(data.playlists)) {
+          setPlaylists(data.playlists.map((p: any) => ({ id: p.id, name: p.name })));
+        }
+      } catch (err) {
+        console.error('Failed to load playlists', err);
+      }
+    };
+    fetchPlaylists();
+  }, []);
+
+  // Reset history when playlist changes
+  useEffect(() => {
+    if (!hydrated) return;
+    setHistory([]);
+    setCurrentIndex(-1);
+    setCard(null);
+    setShowAnswer(false);
+    setNotes('');
+    setNoteFile(null);
+    loadNext();
+  }, [playlistId, hydrated]);
+
   if (loading) {
     return <div className="glass-card text-white/70">Loading...</div>;
   }
@@ -225,7 +254,43 @@ export default function StudyClient() {
     <div className="space-y-6">
       <div className="glass-card space-y-4">
         <div className="flex items-center justify-between">
-          <div className="text-xs uppercase tracking-[0.3em] text-white/60">Prompt</div>
+          <div className="flex items-center gap-3">
+            <div className="text-xs uppercase tracking-[0.3em] text-white/60">Prompt</div>
+            <div className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] text-white/70">
+              <label className="mr-2">Playlist:</label>
+              <select
+                className="bg-transparent text-white/90 outline-none"
+                value={playlistId ?? ''}
+                onChange={(e) => {
+                  const id = e.target.value || undefined;
+                  const label = playlists.find((p) => p.id === id)?.name || undefined;
+                  setPlaylistId(id);
+                  setPlaylistLabel(label);
+                  const url = new URL(window.location.href);
+                  if (id) {
+                    url.searchParams.set('playlistId', id);
+                    if (label) url.searchParams.set('playlistName', label);
+                  } else {
+                    url.searchParams.delete('playlistId');
+                    url.searchParams.delete('playlistName');
+                  }
+                  window.history.replaceState({}, '', url.toString());
+                }}
+              >
+                <option value="">All</option>
+                {playlists.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {playlistLabel && (
+              <span className="hidden sm:inline rounded-full border border-white/20 px-2 py-0.5 text-[11px] uppercase text-white/70">
+                {playlistLabel}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {playlistLabel && (
               <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] uppercase text-white/70">
