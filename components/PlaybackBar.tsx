@@ -50,15 +50,6 @@ export default function PlaybackBar() {
 
   return (
     <div className="glass-pill fixed bottom-2 left-1/2 z-30 flex w-[90vw] max-w-4xl -translate-x-1/2 items-center gap-3 px-3 py-2 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:gap-4 sm:px-5">
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        <button
-          onClick={handlePlay}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-900"
-          title="Start study"
-        >
-          ►
-        </button>
-      </div>
       <div className="flex flex-1 items-center gap-3 sm:gap-4 overflow-hidden">
         <div className="hidden h-8 w-8 shrink-0 rounded-xl bg-white/15 sm:block" />
         <div className="min-w-0 flex-1 space-y-1 overflow-hidden">

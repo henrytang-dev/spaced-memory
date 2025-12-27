@@ -256,10 +256,10 @@ export default function StudyClient() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="text-xs uppercase tracking-[0.3em] text-white/60">Prompt</div>
-            <div className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] text-white/70">
-              <label className="mr-2">Playlist:</label>
+            <div className="rounded-full border border-white/10 bg-white/5/60 px-3 py-1 text-[11px] text-white/70 shadow-inner shadow-white/10 backdrop-blur">
+              <label className="mr-2 text-white/70">Playlist:</label>
               <select
-                className="bg-transparent text-white/90 outline-none"
+                className="bg-transparent text-white/85 outline-none"
                 value={playlistId ?? ''}
                 onChange={(e) => {
                   const id = e.target.value || undefined;
