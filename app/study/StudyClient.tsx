@@ -23,10 +23,14 @@ export default function StudyClient() {
   const [history, setHistory] = useState<StudyCard[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const [hydrated, setHydrated] = useState(false);
+  const [playlistId, setPlaylistId] = useState<string | undefined>(undefined);
+  const [playlistLabel, setPlaylistLabel] = useState<string | undefined>(undefined);
 
   const loadNext = async () => {
     setLoading(true);
-    const res = await fetch('/api/study/next');
+    const url = new URL('/api/study/next', window.location.origin);
+    if (playlistId) url.searchParams.set('playlistId', playlistId);
+    const res = await fetch(url.toString());
     const data = await res.json();
     const nextCard = data.cards?.[0] ?? null;
     if (nextCard) {
@@ -60,7 +64,7 @@ export default function StudyClient() {
     const res = await fetch('/api/study/review', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cardId: card.id, rating })
+      body: JSON.stringify({ cardId: card.id, rating, playlistId })
     });
     if (!res.ok) {
       setMessage('Failed to save review');
@@ -158,6 +162,11 @@ export default function StudyClient() {
   // Hydrate history from localStorage on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const pid = params.get('playlistId') || undefined;
+    const plabel = params.get('playlistName') || undefined;
+    setPlaylistId(pid || undefined);
+    setPlaylistLabel(plabel || undefined);
     const raw = localStorage.getItem('studyHistory');
     if (raw) {
       try {
@@ -218,6 +227,11 @@ export default function StudyClient() {
         <div className="flex items-center justify-between">
           <div className="text-xs uppercase tracking-[0.3em] text-white/60">Prompt</div>
           <div className="flex items-center gap-2">
+            {playlistLabel && (
+              <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] uppercase text-white/70">
+                {playlistLabel}
+              </span>
+            )}
             <button
               className="btn-secondary px-3 py-1 text-xs disabled:opacity-40"
               onClick={goPrev}

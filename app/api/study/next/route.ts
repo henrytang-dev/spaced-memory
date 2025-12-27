@@ -6,17 +6,32 @@ export async function GET(req: NextRequest) {
   const { userId, response } = await requireUser();
   if (!userId) return response!;
 
-  const limit = Number(new URL(req.url).searchParams.get('limit') ?? '1');
+  const url = new URL(req.url);
+  const limit = Number(url.searchParams.get('limit') ?? '1');
+  const playlistId = url.searchParams.get('playlistId') || undefined;
   const now = new Date();
 
-  const cards = await prisma.card.findMany({
-    where: {
-      userId,
-      OR: [{ due: { lte: now } }, { due: null }]
-    },
-    orderBy: [{ due: 'asc' }, { createdAt: 'asc' }],
-    take: limit
-  });
+  const cards =
+    playlistId && playlistId !== 'all'
+      ? await prisma.card.findMany({
+          where: {
+            userId,
+            playlists: {
+              some: { playlistId }
+            },
+            OR: [{ due: { lte: now } }, { due: null }]
+          },
+          orderBy: [{ due: 'asc' }, { createdAt: 'asc' }],
+          take: limit
+        })
+      : await prisma.card.findMany({
+          where: {
+            userId,
+            OR: [{ due: { lte: now } }, { due: null }]
+          },
+          orderBy: [{ due: 'asc' }, { createdAt: 'asc' }],
+          take: limit
+        });
 
   return NextResponse.json({ cards });
 }
