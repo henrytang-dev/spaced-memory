@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import MarkdownView from '@/components/MarkdownView';
 
 export type CardDTO = {
@@ -20,6 +21,11 @@ export default function CardsClient({ initialCards }: { initialCards: CardDTO[] 
   const [cards, setCards] = useState<CardDTO[]>(initialCards);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [playlists, setPlaylists] = useState<{ id: string; name: string }[]>([]);
+  const [targetPlaylist, setTargetPlaylist] = useState<string>('');
+  const [assignStatus, setAssignStatus] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleSearch = async () => {
     if (!query) {
@@ -46,6 +52,56 @@ export default function CardsClient({ initialCards }: { initialCards: CardDTO[] 
     setLoading(false);
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const fetchPlaylists = async () => {
+    try {
+      const res = await fetch('/api/playlists');
+      const data = await res.json();
+      if (Array.isArray(data.playlists)) {
+        setPlaylists(data.playlists.map((p: any) => ({ id: p.id, name: p.name })));
+      }
+    } catch (err) {
+      console.error('Failed to load playlists', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlaylists();
+  }, []);
+
+  const assignToPlaylist = async () => {
+    if (selected.size === 0) {
+      setAssignStatus('Select at least one card');
+      return;
+    }
+    setAssignStatus('Moving...');
+    const body = {
+      playlistId: targetPlaylist || 'unfiled',
+      cardIds: Array.from(selected)
+    };
+    const res = await fetch('/api/playlists/assign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: 'Failed' }));
+      setAssignStatus(data.error || 'Failed to move');
+      return;
+    }
+    setAssignStatus('Moved');
+    setSelected(new Set());
+    router.refresh();
+  };
+
   return (
     <div className="space-y-6">
       <div className="glass-card flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -64,6 +120,28 @@ export default function CardsClient({ initialCards }: { initialCards: CardDTO[] 
         </div>
       </div>
 
+      <div className="glass-card flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
+          <span>Selected: {selected.size}</span>
+          <select
+            className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/80 outline-none"
+            value={targetPlaylist}
+            onChange={(e) => setTargetPlaylist(e.target.value)}
+          >
+            <option value="">Unfiled</option>
+            {playlists.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+          <button className="btn-secondary px-3 py-1 text-xs" onClick={assignToPlaylist}>
+            Move to playlist
+          </button>
+          {assignStatus && <span className="text-[11px] text-white/60">{assignStatus}</span>}
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2">
         {cards.map((card) => (
           <Link
@@ -76,6 +154,12 @@ export default function CardsClient({ initialCards }: { initialCards: CardDTO[] 
             </div>
             <div className="flex flex-wrap items-center justify-between text-xs text-white/60">
               <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selected.has(card.id)}
+                  onChange={() => toggleSelect(card.id)}
+                  className="h-4 w-4 accent-accent"
+                />
                 <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] uppercase tracking-wide">
                   {card.playlist || 'Unfiled'}
                 </span>
