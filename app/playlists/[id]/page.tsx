@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { isAuthenticated } from '@/lib/authSession';
 import { getSingleUserId } from '@/lib/singleUser';
 import MarkdownView from '@/components/MarkdownView';
+import PlaylistCardsClient from './PlaylistCardsClient';
 
 export default async function PlaylistDetailPage({ params }: { params: { id: string } }) {
   if (!isAuthenticated()) redirect('/auth/login');
@@ -21,6 +22,12 @@ export default async function PlaylistDetailPage({ params }: { params: { id: str
 
   if (!playlist) return notFound();
 
+  const cards = playlist.cards.map((c) => ({
+    id: c.cardId,
+    front: c.card.front,
+    tags: c.card.tags
+  }));
+
   return (
     <div className="space-y-6">
       <div className="glass-card">
@@ -35,31 +42,7 @@ export default async function PlaylistDetailPage({ params }: { params: { id: str
           Review this playlist
         </a>
       </div>
-      <div className="glass-card space-y-3">
-        {playlist.cards.length === 0 ? (
-          <p className="text-sm text-white/70">No cards yet.</p>
-        ) : (
-          playlist.cards.map((entry) => (
-            <a
-              key={entry.cardId}
-              href={`/cards/${entry.cardId}`}
-              className="flex flex-col rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white hover:bg-white/10"
-            >
-              <div className="mb-1 flex items-center gap-2 text-[11px] uppercase text-white/60">
-                <span className="rounded-full border border-white/20 px-2 py-0.5">
-                  {playlist.name || 'Playlist'}
-                </span>
-                {entry.card.tags.length > 0 && (
-                  <span className="hidden sm:inline">{entry.card.tags.join(', ')}</span>
-                )}
-              </div>
-              <div className="max-h-20 overflow-hidden text-sm font-semibold text-white">
-                <MarkdownView content={entry.card.front} />
-              </div>
-            </a>
-          ))
-        )}
-      </div>
+      <PlaylistCardsClient cards={cards} playlistId={playlist.id} playlistName={playlist.name} />
     </div>
   );
 }

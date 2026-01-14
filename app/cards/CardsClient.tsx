@@ -157,7 +157,11 @@ export default function CardsClient({ initialCards }: { initialCards: CardDTO[] 
                 <input
                   type="checkbox"
                   checked={selected.has(card.id)}
-                  onChange={() => toggleSelect(card.id)}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    toggleSelect(card.id);
+                  }}
                   className="h-4 w-4 accent-accent"
                 />
                 <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] uppercase tracking-wide">
