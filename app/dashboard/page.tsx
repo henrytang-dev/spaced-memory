@@ -5,6 +5,9 @@ import { getSingleUserId } from '@/lib/singleUser';
 import MarkdownView from '@/components/MarkdownView';
 import HighlightsGrid from '@/components/HighlightsGrid';
 import DeckPreview from '@/components/DeckPreview';
+import dynamic from 'next/dynamic';
+
+const RebaseDueButton = dynamic(() => import('@/components/RebaseDueButton'), { ssr: false });
 
 export default async function DashboardPage() {
   if (!isAuthenticated()) redirect('/auth/login');
@@ -99,6 +102,7 @@ export default async function DashboardPage() {
             <p className="text-xs uppercase tracking-[0.3em] text-white/60">Reviews (24h)</p>
             <p className="mt-2 text-3xl font-semibold">{recentReviews}</p>
           </div>
+          <RebaseDueButton />
         </div>
       </div>
 

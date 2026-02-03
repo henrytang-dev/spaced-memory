@@ -80,6 +80,10 @@ export const fsrsLogToReviewLog = (
 export async function initializeFsrsStateForCard(cardId: string, createdAt?: Date) {
   const now = createdAt ?? new Date();
   const fsrsCard = createEmptyCard(now);
+  // Nudge initial due forward (e.g., 1 day) so new cards aren't due immediately
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  fsrsCard.due = new Date(now.getTime() + oneDayMs);
+  fsrsCard.scheduled_days = Math.max(fsrsCard.scheduled_days ?? 0, 1);
   return prisma.card.update({ where: { id: cardId }, data: fsrsCardToDbUpdate(fsrsCard) });
 }
 
