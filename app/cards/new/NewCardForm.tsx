@@ -7,24 +7,55 @@ export default function NewCardForm() {
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
   const [tags, setTags] = useState('');
+  // OCR-only uploads (not kept)
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [backFile, setBackFile] = useState<File | null>(null);
+  // Reference images to keep & render during review
+  const [refFrontFile, setRefFrontFile] = useState<File | null>(null);
+  const [refBackFile, setRefBackFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [ocrPreview, setOcrPreview] = useState<string | null>(null);
   const router = useRouter();
+
+  const uploadImage = async (file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/images/upload', { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('Image upload failed');
+    const data = await res.json();
+    return data.id as string;
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setStatus('Saving...');
 
-    const hasImages = !!frontFile || !!backFile;
+    const hasOcrImages = !!frontFile || !!backFile;
+    let questionImageId: string | undefined;
+    let answerImageId: string | undefined;
 
-    if (hasImages) {
+    // Optional reference images (kept for review display)
+    try {
+      if (refFrontFile) {
+        questionImageId = await uploadImage(refFrontFile);
+      }
+      if (refBackFile) {
+        answerImageId = await uploadImage(refBackFile);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus('Failed to upload reference image');
+      return;
+    }
+
+    if (hasOcrImages) {
       const formData = new FormData();
       if (frontFile) formData.append('frontImage', frontFile);
       if (backFile) formData.append('backImage', backFile);
       if (front) formData.append('front', front);
       if (back) formData.append('back', back);
+      if (questionImageId) formData.append('questionImageId', questionImageId);
+      if (answerImageId) formData.append('answerImageId', answerImageId);
       const res = await fetch('/api/sources/image', { method: 'POST', body: formData });
       const data = await res.json().catch(() => ({ error: 'Failed' }));
       if (!res.ok) {
@@ -48,7 +79,14 @@ export default function NewCardForm() {
     const res = await fetch('/api/sources/text', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ front, back, text: front, tags: tags ? tags.split(',').map((t) => t.trim()) : [] })
+      body: JSON.stringify({
+        front,
+        back,
+        text: front,
+        tags: tags ? tags.split(',').map((t) => t.trim()) : [],
+        questionImageId,
+        answerImageId
+      })
     });
     if (res.ok) {
       const created = await res.json();
@@ -81,7 +119,7 @@ export default function NewCardForm() {
               if (f) setFrontFile(f);
             }}
           >
-            <div className="font-semibold text-white">Question image (optional)</div>
+            <div className="font-semibold text-white">Question image for OCR (not kept)</div>
             <label className="cursor-pointer rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-center hover:border-accent">
               {frontFile ? `Selected: ${frontFile.name}` : 'Click or drag to upload'}
               <input
@@ -91,6 +129,7 @@ export default function NewCardForm() {
                 onChange={(e) => setFrontFile(e.target.files?.[0] || null)}
               />
             </label>
+            <p className="text-xs text-white/60">Used only for OCR; image is discarded.</p>
           </div>
           <div
             className="flex flex-col gap-2 rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-4 text-sm text-white/80 transition hover:border-accent"
@@ -101,7 +140,7 @@ export default function NewCardForm() {
               if (f) setBackFile(f);
             }}
           >
-            <div className="font-semibold text-white">Answer image (optional)</div>
+            <div className="font-semibold text-white">Answer image for OCR (not kept)</div>
             <label className="cursor-pointer rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-center hover:border-accent">
               {backFile ? `Selected: ${backFile.name}` : 'Click or drag to upload'}
               <input
@@ -111,6 +150,52 @@ export default function NewCardForm() {
                 onChange={(e) => setBackFile(e.target.files?.[0] || null)}
               />
             </label>
+            <p className="text-xs text-white/60">Used only for OCR; image is discarded.</p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div
+            className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/80 transition hover:border-accent"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const f = e.dataTransfer.files?.[0];
+              if (f) setRefFrontFile(f);
+            }}
+          >
+            <div className="font-semibold text-white">Reference image for question (kept)</div>
+            <label className="cursor-pointer rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-center hover:border-accent">
+              {refFrontFile ? `Selected: ${refFrontFile.name}` : 'Click or drag to upload (optional)'}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setRefFrontFile(e.target.files?.[0] || null)}
+              />
+            </label>
+            <p className="text-xs text-white/60">Stored and shown on the card during review.</p>
+          </div>
+          <div
+            className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/80 transition hover:border-accent"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const f = e.dataTransfer.files?.[0];
+              if (f) setRefBackFile(f);
+            }}
+          >
+            <div className="font-semibold text-white">Reference image for answer (kept)</div>
+            <label className="cursor-pointer rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-center hover:border-accent">
+              {refBackFile ? `Selected: ${refBackFile.name}` : 'Click or drag to upload (optional)'}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setRefBackFile(e.target.files?.[0] || null)}
+              />
+            </label>
+            <p className="text-xs text-white/60">Stored and shown on the card during review.</p>
           </div>
         </div>
 

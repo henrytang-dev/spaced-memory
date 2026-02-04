@@ -31,19 +31,28 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { text, front, back, tags = [] } = body as {
+    const { text, front, back, tags = [], questionImageId, answerImageId } = body as {
       text?: string;
       front: string;
       back: string;
       tags?: string[];
+      questionImageId?: string;
+      answerImageId?: string;
     };
 
     if (!front || !back) {
       return NextResponse.json({ error: 'Front and back are required' }, { status: 400 });
     }
 
-    const frontNormalized = ensureBlockMath(front);
-    const backNormalized = ensureBlockMath(back);
+    let frontNormalized = ensureBlockMath(front);
+    let backNormalized = ensureBlockMath(back);
+
+    if (questionImageId) {
+      frontNormalized = `${frontNormalized}\n\n![question image](/api/images/${questionImageId})`;
+    }
+    if (answerImageId) {
+      backNormalized = `${backNormalized}\n\n![answer image](/api/images/${answerImageId})`;
+    }
 
     const source = await prisma.source.create({
       data: {

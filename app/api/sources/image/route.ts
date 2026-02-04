@@ -39,6 +39,8 @@ export async function POST(req: Request) {
     const backFile = formData.get('backImage');
     const providedFront = (formData.get('front') as string) || '';
     const providedBack = (formData.get('back') as string) || '';
+    const questionImageId = (formData.get('questionImageId') as string) || '';
+    const answerImageId = (formData.get('answerImageId') as string) || '';
 
     // Allow two modes:
     // 1) Front image provided (file/frontImage)
@@ -68,7 +70,14 @@ export async function POST(req: Request) {
       back = ensureBlockMath(providedBack || backLatexBlock || backMarkdownText || parsedBack.text || '');
     }
 
-    const front = ensureBlockMath(providedFront || latexBlock || markdownText || parsedFront?.text || '');
+    let front = ensureBlockMath(providedFront || latexBlock || markdownText || parsedFront?.text || '');
+
+    if (questionImageId) {
+      front = `${front}\n\n![question image](/api/images/${questionImageId})`;
+    }
+    if (answerImageId) {
+      back = `${back}\n\n![answer image](/api/images/${answerImageId})`;
+    }
 
     const source = await prisma.source.create({
       data: {
