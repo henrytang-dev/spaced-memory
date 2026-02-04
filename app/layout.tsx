@@ -82,11 +82,13 @@ type LayoutData = {
 async function gatherLayoutData(): Promise<LayoutData> {
   const userId = await getSingleUserId();
   const now = new Date();
+  const endOfToday = new Date(now);
+  endOfToday.setHours(23, 59, 59, 999);
   const weekAgo = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 7);
 
   const [totalCards, dueToday, newCards, playlistRows, tagRows] = await Promise.all([
     prisma.card.count({ where: { userId } }),
-    prisma.card.count({ where: { userId, OR: [{ due: { lte: now } }, { due: null }] } }),
+    prisma.card.count({ where: { userId, OR: [{ due: { lte: endOfToday } }, { due: null }] } }),
     prisma.card.count({ where: { userId, createdAt: { gte: weekAgo } } }),
     prisma.playlist.findMany({
       where: { userId },
