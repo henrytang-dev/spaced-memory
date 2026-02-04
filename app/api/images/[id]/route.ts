@@ -13,7 +13,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   if (!image) return new NextResponse('Not found', { status: 404 });
 
-  return new NextResponse(image.data, {
+  // Cast Buffer to BodyInit for NextResponse
+  return new NextResponse(image.data as unknown as BodyInit, {
     status: 200,
     headers: {
       'Content-Type': image.mimeType,
