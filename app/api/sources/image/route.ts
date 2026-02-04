@@ -6,6 +6,7 @@ import { initializeFsrsStateForCard } from '@/lib/fsrsScheduler';
 import { updateCardEmbedding } from '@/lib/embeddings';
 import { revalidatePath } from 'next/cache';
 import { addCardToPlaylist, ensureUnfiledPlaylist } from '@/lib/playlists';
+import { saveImage } from '@/lib/images';
 
 function ensureBlockMath(text: string) {
   if (!text) return text;
@@ -51,8 +52,11 @@ export async function POST(req: Request) {
     let latexBlock = '';
     let markdownText = '';
 
+    let imageRecord: { id: string } | null = null;
+
     if (file instanceof Blob) {
       const buffer = Buffer.from(await file.arrayBuffer());
+      imageRecord = await saveImage({ userId, buffer, mimeType: file.type || 'image/png' });
       parsedFront = await parseMathpixImage(buffer);
       latexBlock = parsedFront.latex ? ensureBlockMath(parsedFront.latex) : '';
       markdownText = ensureBlockMath(parsedFront.markdown || parsedFront.text || '');
@@ -77,7 +81,8 @@ export async function POST(req: Request) {
         rawText: parsedFront?.text || providedFront || null,
         latex: parsedFront?.latex || null,
         markdown: parsedFront?.markdown || providedFront || null,
-        imageUrl: null
+        imageUrl: imageRecord ? `/api/images/${imageRecord.id}` : null,
+        imageId: imageRecord?.id
       }
     });
 

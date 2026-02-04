@@ -24,6 +24,7 @@ model User {
   reviewLogs ReviewLog[]
   playlists  Playlist[]
   notes      CardNote[]
+  images     Image[]
 }
 
 model Source {
@@ -34,11 +35,27 @@ model Source {
   latex     String?
   markdown  String?
   imageUrl  String?
+  imageId   String?    @unique
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  image Image? @relation(fields: [imageId], references: [id], onDelete: SetNull)
   cards Card[]
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  userId    String
+  mimeType  String
+  data      Bytes
+  size      Int
+  createdAt DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source Source?
+
+  @@index([userId])
 }
 
 model Card {
