@@ -9,7 +9,9 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const limit = Number(url.searchParams.get('limit') ?? '1');
   const playlistId = url.searchParams.get('playlistId') || undefined;
-  const now = new Date();
+  // Use end-of-today to avoid timezone drift keeping "today" cards out of the queue
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
 
   const cards =
     playlistId && playlistId !== 'all'
@@ -19,7 +21,7 @@ export async function GET(req: NextRequest) {
             playlists: {
               some: { playlistId }
             },
-            OR: [{ due: { lte: now } }, { due: null }]
+            OR: [{ due: { lte: endOfToday } }, { due: null }]
           },
           orderBy: [{ due: 'asc' }, { createdAt: 'asc' }],
           take: limit
@@ -27,7 +29,7 @@ export async function GET(req: NextRequest) {
       : await prisma.card.findMany({
           where: {
             userId,
-            OR: [{ due: { lte: now } }, { due: null }]
+            OR: [{ due: { lte: endOfToday } }, { due: null }]
           },
           orderBy: [{ due: 'asc' }, { createdAt: 'asc' }],
           take: limit

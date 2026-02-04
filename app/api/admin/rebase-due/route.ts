@@ -21,9 +21,12 @@ export async function POST() {
       });
       if (overdue.length === 0) break;
 
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
       for (const card of overdue) {
         const days = Math.max(card.scheduledDays ?? 1, 1);
-        const newDue = new Date(now.getTime() + days * DAY_MS);
+        // Rebase so a 1-day interval becomes "due today" (start of day), longer intervals keep spacing
+        const newDue = new Date(startOfToday.getTime() + (days - 1) * DAY_MS);
         await prisma.card.update({
           where: { id: card.id },
           data: { due: newDue, scheduledDays: days }
