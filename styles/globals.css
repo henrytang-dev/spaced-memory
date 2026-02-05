@@ -106,6 +106,27 @@
   .glass-pill {
     @apply rounded-full border border-white/30 bg-white/15 backdrop-blur-xl shadow-lg;
   }
+
+  /* Minimal prose styling (since typography plugin is not enabled) */
+  .prose {
+    @apply text-white leading-relaxed;
+  }
+  .prose p {
+    @apply mb-3;
+  }
+  .prose ul {
+    list-style: disc;
+    margin-left: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .prose ol {
+    list-style: decimal;
+    margin-left: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .prose li {
+    margin-bottom: 0.35rem;
+  }
 }
 
 @keyframes aurora {
