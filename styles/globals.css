@@ -13,7 +13,7 @@
   }
 
   body {
-    @apply relative min-h-screen overflow-x-hidden overflow-y-hidden text-gray-100;
+    @apply relative min-h-screen overflow-x-hidden overflow-y-auto text-gray-100;
     background: url('../backgrounds/curr_background.jpg') center/cover fixed no-repeat;
   }
 

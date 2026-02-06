@@ -25,16 +25,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="w-full max-w-2xl">{children}</div>
           </div>
         ) : (
-          <div className="min-h-screen lg:h-screen px-2 py-2 sm:px-4">
-            <div className="shell mx-auto flex h-full w-full max-w-[calc(100vw-32px)] lg:max-h-[calc(100vh-32px)] rounded-[28px] p-3 sm:p-5">
-              <div className="flex h-full w-full flex-col gap-3 lg:grid lg:grid-cols-[70px_240px_1fr] lg:gap-4">
+          <div className="min-h-screen px-2 py-2 sm:px-4">
+            <div className="shell mx-auto flex w-full max-w-[calc(100vw-32px)] rounded-[28px] p-3 sm:p-5">
+              <div className="flex w-full flex-col gap-3 lg:grid lg:grid-cols-[70px_240px_1fr] lg:gap-4">
                 <div className="hidden lg:block">
                   <IconRail />
                 </div>
                 <div className="hidden lg:flex">
                   <LibrarySidebar authenticated={authenticated} stats={data?.stats} playlists={data?.playlistsSidebar} />
                 </div>
-                <div className="flex h-full min-h-0 flex-col gap-3 overflow-visible rounded-[28px] border border-white/10 bg-white/10 px-3 py-4 sm:px-5 sm:py-5 backdrop-blur-2xl pb-16">
+                <div className="flex min-h-[70vh] flex-col gap-3 overflow-auto rounded-[28px] border border-white/10 bg-white/10 px-3 py-4 sm:px-5 sm:py-5 backdrop-blur-2xl pb-10">
                   <div className="lg:hidden">
                     <MobileNav />
                   </div>
@@ -54,8 +54,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     />
                   </div>
 
-                  <div className="mt-1 flex-1 min-h-0 overflow-hidden rounded-3xl border border-white/10 bg-white/5">
-                    <div className="h-full overflow-auto px-3 py-4 sm:px-5">{children}</div>
+                  <div className="mt-1 flex-1 overflow-auto rounded-3xl border border-white/10 bg-white/5">
+                    <div className="h-full overflow-visible px-3 py-4 sm:px-5">{children}</div>
                   </div>
 
                 </div>
