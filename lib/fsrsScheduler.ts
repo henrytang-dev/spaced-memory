@@ -13,6 +13,16 @@ import { prisma } from './prisma';
 const params = generatorParameters({ enable_fuzz: true, enable_short_term: false });
 const scheduler = fsrs(params);
 
+function jitterDue(due: Date, now: Date) {
+  const intervalMs = due.getTime() - now.getTime();
+  if (intervalMs <= 0) return due;
+  // widen fuzz: ±15% with clamp
+  const fuzz = (Math.random() * 0.3 - 0.15) * intervalMs;
+  const jittered = new Date(due.getTime() + fuzz);
+  const minDue = new Date(now.getTime() + 60 * 60 * 1000); // at least 1h ahead
+  return jittered < minDue ? minDue : jittered;
+}
+
 export const dbCardToFsrsCard = (card: Card): FsrsCard => {
   const storedState = card.state;
   let state: FsrsCard['state'];
@@ -80,10 +90,10 @@ export const fsrsLogToReviewLog = (
 export async function initializeFsrsStateForCard(cardId: string, createdAt?: Date) {
   const now = createdAt ?? new Date();
   const fsrsCard = createEmptyCard(now);
-  // Nudge initial due forward (e.g., 1 day) so new cards aren't due immediately
-  const oneDayMs = 24 * 60 * 60 * 1000;
-  fsrsCard.due = new Date(now.getTime() + oneDayMs);
-  fsrsCard.scheduled_days = Math.max(fsrsCard.scheduled_days ?? 0, 1);
+  // Ramp new cards: start 2 days out to avoid day-one pileups
+  const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+  fsrsCard.due = new Date(now.getTime() + twoDaysMs);
+  fsrsCard.scheduled_days = Math.max(fsrsCard.scheduled_days ?? 0, 2);
   return prisma.card.update({ where: { id: cardId }, data: fsrsCardToDbUpdate(fsrsCard) });
 }
 
@@ -108,6 +118,11 @@ export async function applyReview(card: Card, rating: Rating, now = new Date()) 
   const schedulingCards: IPreview = scheduler.repeat(fsrsCard, now);
   const grade = ratingToGrade(rating);
   const outcome = schedulingCards[grade];
+
+  // widen fuzz manually
+  if (outcome.card.due) {
+    outcome.card.due = jitterDue(outcome.card.due, now);
+  }
 
   const updatedCard = await prisma.card.update({
     where: { id: card.id },

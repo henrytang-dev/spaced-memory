@@ -26,11 +26,13 @@ export default function StudyClient() {
   const [playlistId, setPlaylistId] = useState<string | undefined>(undefined);
   const [playlistLabel, setPlaylistLabel] = useState<string | undefined>(undefined);
   const [playlists, setPlaylists] = useState<{ id: string; name: string }[]>([]);
+  const [sessionLimit, setSessionLimit] = useState<number>(30);
 
   const loadNext = async () => {
     setLoading(true);
     const url = new URL('/api/study/next', window.location.origin);
     if (playlistId) url.searchParams.set('playlistId', playlistId);
+    if (sessionLimit) url.searchParams.set('limit', String(sessionLimit));
     const res = await fetch(url.toString());
     const data = await res.json();
     const nextCard = data.cards?.[0] ?? null;
@@ -159,6 +161,21 @@ export default function StudyClient() {
 
   const canPrev = currentIndex > 0;
   const canNext = currentIndex < history.length - 1 || !loading;
+  const postpone = async () => {
+    if (!card) return;
+    setMessage('Postponing...');
+    const res = await fetch('/api/study/postpone', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cardId: card.id, days: 1 })
+    });
+    if (!res.ok) {
+      setMessage('Failed to postpone');
+      return;
+    }
+    setMessage(null);
+    await loadNext();
+  };
 
   // Hydrate history from localStorage on mount and read playlist params
   useEffect(() => {
@@ -168,6 +185,11 @@ export default function StudyClient() {
     const plabel = params.get('playlistName') || undefined;
     setPlaylistId(pid || undefined);
     setPlaylistLabel(plabel || undefined);
+    const storedLimit = window.localStorage.getItem('sessionLimit');
+    if (storedLimit) {
+      const num = Number(storedLimit);
+      if (!Number.isNaN(num) && num > 0) setSessionLimit(num);
+    }
     const raw = localStorage.getItem('studyHistory');
     if (raw) {
       try {
@@ -292,6 +314,24 @@ export default function StudyClient() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] text-white/70">
+              <span>Session size:</span>
+              <select
+                className="bg-transparent text-white outline-none"
+                value={sessionLimit}
+                onChange={(e) => {
+                  const v = Number(e.target.value) || 1;
+                  setSessionLimit(v);
+                  localStorage.setItem('sessionLimit', String(v));
+                }}
+              >
+                {[10, 20, 30, 40, 60, 100].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </div>
             {playlistLabel && (
               <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] uppercase text-white/70">
                 {playlistLabel}
@@ -312,6 +352,13 @@ export default function StudyClient() {
               title="Next card"
             >
               ›
+            </button>
+            <button
+              className="btn-secondary px-3 py-1 text-xs disabled:opacity-40"
+              onClick={postpone}
+              title="Postpone this card to tomorrow"
+            >
+              Postpone
             </button>
             <a href={`/cards/${card.id}`} className="btn-secondary px-3 py-1 text-xs">
               Edit card
