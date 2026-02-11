@@ -33,6 +33,7 @@ export default function StudyClient() {
     const url = new URL('/api/study/next', window.location.origin);
     if (playlistId) url.searchParams.set('playlistId', playlistId);
     if (sessionLimit) url.searchParams.set('limit', String(sessionLimit));
+    if (sessionLimit) url.searchParams.set('cap', String(sessionLimit));
     const res = await fetch(url.toString());
     const data = await res.json();
     const nextCard = data.cards?.[0] ?? null;
@@ -257,7 +258,7 @@ export default function StudyClient() {
     setNotes('');
     setNoteFile(null);
     loadNext();
-  }, [playlistId, hydrated]);
+  }, [playlistId, hydrated, sessionLimit]);
 
   if (loading) {
     return <div className="glass-card text-white/70">Loading...</div>;
