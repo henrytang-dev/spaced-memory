@@ -44,11 +44,35 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const cards = await prisma.card.findMany({
+  let cards = await prisma.card.findMany({
     where: baseWhere,
     orderBy: [{ due: 'asc' }, { createdAt: 'asc' }],
     take: Math.min(limit, dailyCap)
   });
+
+  // Fallback: if filtering by playlist and nothing is due today, surface the next upcoming cards in that playlist
+  if ((!cards || cards.length === 0) && playlistId && playlistId !== 'all') {
+    cards = await prisma.card.findMany({
+      where: {
+        userId,
+        playlists: { some: { playlistId } }
+      },
+      orderBy: [{ due: 'asc' }, { createdAt: 'asc' }],
+      take: Math.min(limit, dailyCap)
+    });
+  }
+
+  // Final fallback: if still empty and playlist filter is on, surface at least one card (any due date)
+  if ((!cards || cards.length === 0) && playlistId && playlistId !== 'all') {
+    cards = await prisma.card.findMany({
+      where: {
+        userId,
+        playlists: { some: { playlistId } }
+      },
+      orderBy: [{ createdAt: 'asc' }],
+      take: Math.min(limit, dailyCap, 1)
+    });
+  }
 
   return NextResponse.json({ cards });
 }
